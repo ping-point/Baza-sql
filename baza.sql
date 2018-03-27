@@ -79,14 +79,7 @@ CREATE TABLE IF NOT EXISTS `gracze` (
   `haslo` varchar(200) COLLATE utf8_polish_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
---
--- Zrzut danych tabeli `gracze`
---
 
-INSERT INTO `gracze` (`login`, `email`, `haslo`) VALUES
-('test1', 'test1@gmail.com', 'test1'),
-('test2', 'test2@gmail.com', 'test2'),
-('test2424', 'test23323@gmail.com', 'test2test');
 
 -- --------------------------------------------------------
 
@@ -102,14 +95,6 @@ CREATE TABLE IF NOT EXISTS `mecze` (
   `data` date DEFAULT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
---
--- Zrzut danych tabeli `mecze`
---
-
-INSERT INTO `mecze` (`mecze_id`, `turnieje_id`, `gracz1_id`, `gracz2_id`, `data`) VALUES
-(1, NULL, 'test1', 'test2', '2018-03-20'),
-(3, NULL, 'test1', 'test2', '0000-00-00'),
-(4, NULL, 'test1', 'test2', '2018-03-20');
 
 -- --------------------------------------------------------
 
@@ -124,32 +109,6 @@ CREATE TABLE IF NOT EXISTS `punkty` (
 `punkty_id` int(11) unsigned NOT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
---
--- Zrzut danych tabeli `punkty`
---
-
-INSERT INTO `punkty` (`numer_setu`, `punkt`, `mecze_id`, `punkty_id`) VALUES
-(1, 'test1', 1, 1),
-(1, 'test1', 1, 2),
-(1, 'test1', 1, 3),
-(1, 'test2', 1, 4),
-(1, 'test1', 1, 5),
-(1, 'test2', 1, 6),
-(1, 'test1', 1, 7),
-(1, 'test2', 1, 8),
-(1, 'test1', 1, 9),
-(1, 'test1', 1, 10),
-(2, 'test1', 1, 11),
-(2, 'test2', 1, 12),
-(2, 'test2', 1, 13),
-(2, 'test1', 1, 14),
-(2, 'test1', 1, 15),
-(2, 'test1', 1, 16),
-(2, 'test1', 1, 17),
-(2, 'test1', 1, 18),
-(2, 'test2', 1, 19),
-(2, 'test1', 1, 20),
-(1, 'test1', 3, 21);
 
 -- --------------------------------------------------------
 
@@ -160,7 +119,9 @@ INSERT INTO `punkty` (`numer_setu`, `punkt`, `mecze_id`, `punkty_id`) VALUES
 CREATE TABLE IF NOT EXISTS `turnieje` (
 `turnieje_id` int(11) unsigned NOT NULL,
   `do_ilu_punkty` int(2) NOT NULL DEFAULT '11',
-  `do_ilu_sety` int(1) NOT NULL DEFAULT '3'
+  `do_ilu_sety` int(1) NOT NULL DEFAULT '3',
+  `typ` varchar(6) COLLATE utf8_polish_ci NOT NULL,
+  `opis` varchar(200) COLLATE utf8_polish_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 --
