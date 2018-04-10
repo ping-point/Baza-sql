@@ -48,6 +48,14 @@ BEGIN
     END IF;
 END$$
 
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getLoosers`()
+    NO SQL
+BEGIN
+SELECT login from gracze where login not in (SELECT login FROM gracze join mecze m on(login = gracz1_id or login=gracz2_id) having login in (
+SELECT punkt FROM `punkty` WHERE punkty_id = (SELECT max(punkty_id) from punkty where mecze_id = m.mecze_id)));
+END$$
+
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMecz`(IN `p_login` VARCHAR(45))
     NO SQL
 BEGIN
@@ -58,6 +66,19 @@ CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getPunkty`(IN `p_mecze_id` 
     NO SQL
 BEGIN
 	select * from punkty where mecze_id=p_mecze_id;
+END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getWinners`()
+    NO SQL
+BEGIN
+SELECT login FROM gracze join mecze m on(login = gracz1_id or login=gracz2_id) having login in (
+SELECT punkt FROM `punkty` WHERE punkty_id = (SELECT max(punkty_id) from punkty where mecze_id = m.mecze_id));
+END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_newTurniej`(IN `p_punkty` INT(2), IN `p_sety` INT(1), IN `p_typ` VARCHAR(9), IN `p_opis` VARCHAR(200), IN `p_login` VARCHAR(45))
+BEGIN
+INSERT INTO turnieje(do_ilu_punkty, do_ilu_sety, typ, opis, nadzorca) VALUES(p_punkty, p_sety, p_typ, p_opis, p_login);
+SELECT MAX(turnieje_id) FROM turnieje;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_validateLogin`(IN `p_login` VARCHAR(20))
@@ -107,7 +128,7 @@ CREATE TABLE IF NOT EXISTS `punkty` (
   `punkt` varchar(45) COLLATE utf8_polish_ci NOT NULL,
   `mecze_id` int(11) unsigned NOT NULL,
 `punkty_id` int(11) unsigned NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 
 -- --------------------------------------------------------
@@ -120,9 +141,10 @@ CREATE TABLE IF NOT EXISTS `turnieje` (
 `turnieje_id` int(11) unsigned NOT NULL,
   `do_ilu_punkty` int(2) NOT NULL DEFAULT '11',
   `do_ilu_sety` int(1) NOT NULL DEFAULT '3',
-  `typ` varchar(6) COLLATE utf8_polish_ci NOT NULL,
-  `opis` varchar(200) COLLATE utf8_polish_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+  `typ` varchar(9) COLLATE utf8_polish_ci NOT NULL,
+  `opis` varchar(200) COLLATE utf8_polish_ci DEFAULT NULL,
+  `nadzorca` varchar(45) COLLATE utf8_polish_ci NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 --
 -- Indeksy dla zrzutów tabel
@@ -189,6 +211,13 @@ ADD CONSTRAINT `mecze_turnieje_fk` FOREIGN KEY (`turnieje_id`) REFERENCES `turni
 ALTER TABLE `punkty`
 ADD CONSTRAINT `punkty_gracze_fk` FOREIGN KEY (`punkt`) REFERENCES `gracze` (`login`),
 ADD CONSTRAINT `punkty_mecze_fk` FOREIGN KEY (`mecze_id`) REFERENCES `mecze` (`mecze_id`);
+
+
+--
+-- Ograniczenia dla tabeli `turnieje`
+--
+ALTER TABLE `turnieje`
+ADD CONSTRAINT `turnieje_gracze_fk` FOREIGN KEY (`nadzorca`) REFERENCES `gracze` (`login`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
