@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Czas generowania: 27 Mar 2018, 12:39
+-- Czas generowania: 22 Kwi 2018, 13:39
 -- Wersja serwera: 5.5.50-MariaDB
 -- Wersja PHP: 5.4.16
 
@@ -48,6 +48,27 @@ BEGIN
     END IF;
 END$$
 
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_deleteAll`()
+    NO SQL
+BEGIN
+DELETE FROM punkty;
+DELETE FROM mecze;
+ALTER TABLE mecze AUTO_INCREMENT=1;
+DELETE FROM turnieje;
+ALTER TABLE turnieje AUTO_INCREMENT=1;
+DELETE FROM gracze;
+INSERT INTO gracze VALUES
+('test1', 'test1@gmail.com', 'test1'),
+('test2', 'test2@gmail.com', 'test2');
+END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_deleteTurniej`(IN `id_turnieju` INT(11))
+    NO SQL
+BEGIN
+DELETE FROM punkty WHERE mecze_ID in (SELECT mecze_ID FROM mecze WHERE turnieje_ID = id_turnieju);
+DELETE FROM mecze WHERE turnieje_ID = id_turnieju;
+DELETE FROM turnieje WHERE turnieje_ID = id_turnieju;
+END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getLoosers`()
     NO SQL
@@ -62,17 +83,40 @@ BEGIN
 	select * from mecze where gracz1_id=p_login or gracz2_id=p_login;
 END$$
 
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMeczTurnieju`(IN `id` INT(11))
+    NO SQL
+BEGIN
+	select * from mecze where turnieje_id=id;
+END$$
+
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getPunkty`(IN `p_mecze_id` INT)
     NO SQL
 BEGIN
 	select * from punkty where mecze_id=p_mecze_id;
 END$$
 
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getTurniej`(IN `id` INT(11))
+    NO SQL
+BEGIN
+	select * from turnieje where turnieje_id=id;
+END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getUsers`()
+    NO SQL
+begin
+select login from gracze;
+end$$
+
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getWinners`()
     NO SQL
 BEGIN
 SELECT login FROM gracze join mecze m on(login = gracz1_id or login=gracz2_id) having login in (
 SELECT punkt FROM `punkty` WHERE punkty_id = (SELECT max(punkty_id) from punkty where mecze_id = m.mecze_id));
+END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_newMecz`(IN `id_turnieju` INT(11), IN `gracz_1` VARCHAR(45), IN `gracz_2` VARCHAR(45))
+BEGIN
+INSERT INTO mecze(turnieje_id, gracz1_id, gracz2_id) VALUES(id_turnieju, gracz_1, gracz_2);
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_newTurniej`(IN `p_punkty` INT(2), IN `p_sety` INT(1), IN `p_typ` VARCHAR(9), IN `p_opis` VARCHAR(200), IN `p_login` VARCHAR(45))
@@ -114,7 +158,7 @@ CREATE TABLE IF NOT EXISTS `mecze` (
   `gracz1_id` varchar(45) COLLATE utf8_polish_ci NOT NULL,
   `gracz2_id` varchar(45) COLLATE utf8_polish_ci NOT NULL,
   `data` date DEFAULT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 
 -- --------------------------------------------------------
@@ -127,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `punkty` (
   `numer_setu` int(11) NOT NULL,
   `punkt` varchar(45) COLLATE utf8_polish_ci NOT NULL,
   `mecze_id` int(11) unsigned NOT NULL,
-`punkty_id` int(11) unsigned NOT NULL
+  `punkty_id` int(11) unsigned NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 
@@ -144,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `turnieje` (
   `typ` varchar(9) COLLATE utf8_polish_ci NOT NULL,
   `opis` varchar(200) COLLATE utf8_polish_ci DEFAULT NULL,
   `nadzorca` varchar(45) COLLATE utf8_polish_ci NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 --
 -- Indeksy dla zrzutów tabel
@@ -160,7 +204,7 @@ ALTER TABLE `gracze`
 -- Indexes for table `mecze`
 --
 ALTER TABLE `mecze`
- ADD PRIMARY KEY (`mecze_id`), ADD UNIQUE KEY `turnieje_id` (`turnieje_id`), ADD KEY `gracz1_id` (`gracz1_id`), ADD KEY `gracz2_id` (`gracz2_id`);
+ ADD PRIMARY KEY (`mecze_id`), ADD KEY `turnieje_id` (`turnieje_id`), ADD KEY `gracz1_id` (`gracz1_id`), ADD KEY `gracz2_id` (`gracz2_id`);
 
 --
 -- Indexes for table `punkty`
@@ -172,7 +216,7 @@ ALTER TABLE `punkty`
 -- Indexes for table `turnieje`
 --
 ALTER TABLE `turnieje`
- ADD PRIMARY KEY (`turnieje_id`);
+ ADD PRIMARY KEY (`turnieje_id`), ADD KEY `nadzorca` (`nadzorca`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -182,17 +226,12 @@ ALTER TABLE `turnieje`
 -- AUTO_INCREMENT dla tabeli `mecze`
 --
 ALTER TABLE `mecze`
-MODIFY `mecze_id` int(11) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
---
--- AUTO_INCREMENT dla tabeli `punkty`
---
-ALTER TABLE `punkty`
-MODIFY `punkty_id` int(11) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=22;
+MODIFY `mecze_id` int(11) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=89;
 --
 -- AUTO_INCREMENT dla tabeli `turnieje`
 --
 ALTER TABLE `turnieje`
-MODIFY `turnieje_id` int(11) unsigned NOT NULL AUTO_INCREMENT;
+MODIFY `turnieje_id` int(11) unsigned NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 --
 -- Ograniczenia dla zrzutów tabel
 --
