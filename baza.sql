@@ -73,8 +73,12 @@ END$$
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getLoosers`()
     NO SQL
 BEGIN
-SELECT login from gracze where login not in (SELECT login FROM gracze join mecze m on(login = gracz1_id or login=gracz2_id) having login in (
-SELECT punkt FROM `punkty` WHERE punkty_id = (SELECT max(punkty_id) from punkty where mecze_id = m.mecze_id)));
+SELECT login, count(login) as ile from gracze join mecze m ON login = gracz1_id or login = gracz2_id where mecze_ID IN (SELECT mecze_ID from punkty) and login not in (select 
+punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_ID) group by login 
+UNION
+SELECT login, 0 as ile from gracze where login not in (SELECT login from gracze join mecze m ON login = gracz1_id or login = gracz2_id where mecze_ID IN (SELECT mecze_ID from punkty) and login not in (select 
+punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_ID))
+order by ile DESC, login;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMecz`(IN `p_login` VARCHAR(45))
@@ -82,6 +86,12 @@ CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMecz`(IN `p_login` VARCH
 BEGIN
 	select * from mecze where gracz1_id=p_login or gracz2_id=p_login;
 END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMecz2`(IN `p_id` INT(11))
+    NO SQL
+begin
+select * from mecze where mecze_id=p_id;
+end$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMeczTurnieju`(IN `id` INT(11))
     NO SQL
@@ -101,17 +111,25 @@ BEGIN
 	select * from turnieje where turnieje_id=id;
 END$$
 
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getTurniejeIdGracza`(IN `p_login` VARCHAR(45))
+    NO SQL
+begin
+SELECT turnieje_id from mecze where (gracz1_id = p_login or gracz2_id = p_login) and turnieje_id is not null group by turnieje_id;
+end$$
+
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getUsers`()
     NO SQL
 begin
 select login from gracze;
 end$$
-
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getWinners`()
     NO SQL
 BEGIN
-SELECT login FROM gracze join mecze m on(login = gracz1_id or login=gracz2_id) having login in (
-SELECT punkt FROM `punkty` WHERE punkty_id = (SELECT max(punkty_id) from punkty where mecze_id = m.mecze_id));
+SELECT login, count(login) as ile from gracze join mecze m ON login = gracz1_id or login = gracz2_id where login in (select 
+punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_ID) group by login 
+UNION
+SELECT login, 0 as ile from gracze where login not in (SELECT login from gracze join mecze m ON login = gracz1_id or login = gracz2_id where login in (select punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_id))
+order by ile DESC, login;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_newMecz`(IN `id_turnieju` INT(11), IN `gracz_1` VARCHAR(45), IN `gracz_2` VARCHAR(45))
