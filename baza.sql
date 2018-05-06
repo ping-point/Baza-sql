@@ -26,19 +26,19 @@ DELIMITER $$
 --
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_createUser`(IN `p_login` VARCHAR(20), IN `p_email` VARCHAR(20), IN `p_haslo` VARCHAR(20))
 BEGIN
-    if ( select exists (select 1 from gracze where login = p_login) ) THEN
+    IF ( SELECT exists (SELECT 1 FROM gracze WHERE login = p_login) ) THEN
      
-        select 'Uzytkownik Istnieje !!';
+        SELECT 'Uzytkownik Istnieje !!';
      
     ELSE
      
-        insert into gracze
+        INSERT INTO gracze
         (
             login,
             email,
             haslo
         )
-        values
+        VALUES
         (
             p_login,
             p_email,
@@ -73,63 +73,64 @@ END$$
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getLoosers`()
     NO SQL
 BEGIN
-SELECT login, count(login) as ile from gracze join mecze m ON login = gracz1_id or login = gracz2_id where mecze_ID IN (SELECT mecze_ID from punkty) and login not in (select 
-punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_ID) group by login 
+SELECT login, COUNT(login) AS ile FROM gracze JOIN mecze m ON login = gracz1_id OR login = gracz2_id WHERE mecze_ID IN (SELECT mecze_ID FROM punkty) AND login NOT IN (SELECT 
+punkt FROM punkty WHERE punkty_ID IN (SELECT MAX(punkty_id) FROM punkty WHERE mecze_ID=m.mecze_ID) AND mecze_ID=m.mecze_ID) GROUP BY login 
 UNION
-SELECT login, 0 as ile from gracze where login not in (SELECT login from gracze join mecze m ON login = gracz1_id or login = gracz2_id where mecze_ID IN (SELECT mecze_ID from punkty) and login not in (select 
-punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_ID))
-order by ile DESC, login;
+SELECT login, 0 AS ile FROM gracze WHERE login NOT IN (SELECT login FROM gracze JOIN mecze m ON login = gracz1_id OR login = gracz2_id WHERE mecze_ID IN (SELECT mecze_ID FROM punkty) AND login NOT IN (SELECT 
+punkt FROM punkty WHERE punkty_ID IN (SELECT max(punkty_id) FROM punkty WHERE mecze_ID=m.mecze_ID) AND mecze_ID=m.mecze_ID))
+ORDER BY ile DESC, login;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMecz`(IN `p_login` VARCHAR(45))
     NO SQL
 BEGIN
-	select * from mecze where gracz1_id=p_login or gracz2_id=p_login;
+	SELECT * FROM mecze WHERE gracz1_id=p_login OR gracz2_id=p_login;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMecz2`(IN `p_id` INT(11))
     NO SQL
-begin
-select * from mecze where mecze_id=p_id;
-end$$
+BEGIN
+SELECT * FROM mecze WHERE mecze_id=p_id;
+END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getMeczTurnieju`(IN `id` INT(11))
     NO SQL
 BEGIN
-	select * from mecze where turnieje_id=id;
+	SELECT * FROM mecze WHERE turnieje_id=id;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getPunkty`(IN `p_mecze_id` INT)
     NO SQL
 BEGIN
-	select * from punkty where mecze_id=p_mecze_id;
+	SELECT * FROM punkty WHERE mecze_id=p_mecze_id;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getTurniej`(IN `id` INT(11))
     NO SQL
 BEGIN
-	select * from turnieje where turnieje_id=id;
+	SELECT * FROM turnieje WHERE turnieje_id=id;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getTurniejeIdGracza`(IN `p_login` VARCHAR(45))
     NO SQL
-begin
-SELECT turnieje_id from mecze where (gracz1_id = p_login or gracz2_id = p_login) and turnieje_id is not null group by turnieje_id;
-end$$
+BEGIN
+SELECT turnieje_id FROM mecze WHERE (gracz1_id = p_login OR gracz2_id = p_login) AND turnieje_id IS NOT null GROUP BY turnieje_id;
+END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getUsers`()
     NO SQL
-begin
-select login from gracze;
-end$$
+BEGIN
+SELECT login FROM gracze;
+END$$
+
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getWinners`()
     NO SQL
 BEGIN
-SELECT login, count(login) as ile from gracze join mecze m ON login = gracz1_id or login = gracz2_id where login in (select 
-punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_ID) group by login 
+SELECT login, COUNT(login) AS ile FROM gracze JOIN mecze m ON login = gracz1_id OR login = gracz2_id WHERE login IN (SELECT 
+punkt FROM punkty WHERE punkty_ID IN (SELECT MAX(punkty_id) FROM punkty WHERE mecze_ID=m.mecze_ID) AND mecze_ID=m.mecze_ID) GROUP BY login 
 UNION
-SELECT login, 0 as ile from gracze where login not in (SELECT login from gracze join mecze m ON login = gracz1_id or login = gracz2_id where login in (select punkt from punkty where punkty_ID in (select max(punkty_id) from punkty where mecze_ID=m.mecze_ID) and mecze_ID=m.mecze_id))
-order by ile DESC, login;
+SELECT login, 0 AS ile FROM gracze WHERE login NOT IN (SELECT login FROM gracze JOIN mecze m ON login = gracz1_id OR login = gracz2_id WHERE login IN (SELECT punkt FROM punkty WHERE punkty_ID IN (SELECT MAX(punkty_id) FROM punkty WHERE mecze_ID=m.mecze_ID) AND mecze_ID=m.mecze_id))
+ORDER BY ile DESC, login;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_newMecz`(IN `id_turnieju` INT(11), IN `gracz_1` VARCHAR(45), IN `gracz_2` VARCHAR(45))
@@ -145,7 +146,7 @@ END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_validateLogin`(IN `p_login` VARCHAR(20))
 BEGIN
-    select * from gracze where login = p_login;
+    SELECT * FROM gracze WHERE login = p_login;
 END$$
 
 DELIMITER ;
@@ -186,7 +187,7 @@ CREATE TABLE IF NOT EXISTS `mecze` (
 --
 
 CREATE TABLE IF NOT EXISTS `punkty` (
-  `numer_setu` int(11) NOT NULL,
+  `numer_setu` int(2) NOT NULL,
   `punkt` varchar(45) COLLATE utf8_polish_ci NOT NULL,
   `mecze_id` int(11) unsigned NOT NULL,
   `punkty_id` int(11) unsigned NOT NULL
