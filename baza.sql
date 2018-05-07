@@ -99,10 +99,22 @@ BEGIN
 	SELECT * FROM mecze WHERE turnieje_id=id;
 END$$
 
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getNierozegraneMecze`(IN `p_login` VARCHAR(11))
+    NO SQL
+BEGIN
+	SELECT * FROM mecze m WHERE (m.gracz1_id=p_login OR m.gracz2_id=p_login) AND m.data IS NULL;
+END$$
+
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getPunkty`(IN `p_mecze_id` INT)
     NO SQL
 BEGIN
 	SELECT * FROM punkty WHERE mecze_id=p_mecze_id;
+END$$
+
+CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getRozegraneMecze`(IN `p_login` VARCHAR(11))
+    NO SQL
+BEGIN
+	SELECT * FROM mecze m WHERE (m.gracz1_id=p_login OR m.gracz2_id=p_login) AND m.data IS NOT NULL;
 END$$
 
 CREATE DEFINER=`pz2017_10`@`localhost` PROCEDURE `sp_getTurniej`(IN `id` INT(11))
